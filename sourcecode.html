@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Vaccination Tracker</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Plotly.js for interactive charts (Updated link) -->
+    <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+    <style>
+        /* Using Inter font as default */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #aaa;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"> 
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex items-center space-x-3">
+                <!-- Icon -->
+                <svg class="w-10 h-10 text-blue-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <h1 class="text-3xl md:text-4xl font-bold text-blue-700">AI-Powered Vaccination Tracker</h1>
+            </div>
+            <p class="text-lg text-gray-600 mt-2">Analyze and visualize vaccination data in real-time.</p>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+            <!-- Sidebar / Controls -->
+            <aside class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit sticky top-8">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2 text-gray-700">Controls</h2>
+                
+                <!-- File Upload Simulation -->
+                <div class="mb-4">
+                    <label for="file-upload" class="block text-sm font-medium text-gray-700 mb-1">Upload Data (CSV)</label>
+                    <input id="file-upload" type="file" accept=".csv" class="w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-lg file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100 cursor-pointer" disabled>
+                    <p classs="text-xs text-gray-500 mt-1">File upload is disabled. Using mock data.</p>
+                </div>
+
+                <!-- Region Filter -->
+                <div class="mb-4">
+                    <label for="region-filter" class="block text-sm font-medium text-gray-700">Region</label>
+                    <select id="region-filter" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        <option value="All">All Regions</option>
+                        <option value="North">North</option>
+                        <option value="South">South</option>
+                        <option value="East">East</option>
+                        <option value="West">West</option>
+                    </select>
+                </div>
+
+                <!-- Vaccine Type Filter -->
+                <div>
+                    <label for="vaccine-filter" class="block text-sm font-medium text-gray-700">Vaccine Type</label>
+                    <select id="vaccine-filter" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        <option value="All">All Types</option>
+                        <option value="VaxA">VaxA (mRNA)</option>
+                        <option value="VaxB">VaxB (Viral Vector)</option>
+                        <option value="VaxC">VaxC (Protein)</option>
+                    </select>
+                </div>
+            </aside>
+
+            <!-- Main Dashboard Content -->
+            <main class="lg:col-span-3">
+                <!-- Key Metrics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <!-- Total Doses Card -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg transition-shadow hover:shadow-xl">
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <svg class="w-6 h-6 text-blue-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-500">Total Doses Administered</h3>
+                                <p id="total-doses" class="text-3xl font-semibold text-blue-600">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Fully Vaccinated Card -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg transition-shadow hover:shadow-xl">
+                         <div class="flex items-center space-x-4">
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <svg class="w-6 h-6 text-green-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-500">Fully Vaccinated</h3>
+                                <p id="fully-vaccinated" class="text-3xl font-semibold text-green-600">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- AI Insight Card -->
+                    <div class="bg-blue-50 p-6 rounded-xl shadow-lg transition-shadow hover:shadow-xl">
+                         <div class="flex items-center space-x-4">
+                            <div class="bg-blue-200 p-3 rounded-full">
+                               <svg class="w-6 h-6 text-blue-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-medium text-blue-600">AI Insight: 7-Day Trend</h3>
+                                <p id="ai-insight" class="text-xl font-semibold text-gray-700">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plotly Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">Doses Administered Over Time</h2>
+                    <div id="plotly-chart" class="w-full h-96 md:h-[500px]"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // --- MOCK DATA (Simulating Pandas DataFrame) ---
+        // In a real app, you'd get this from the file upload or an API.
+        const mockCSVData = `
+date,region,vaccine_type,doses_administered,fully_vaccinated
+2024-01-01,North,VaxA,1500,500
+2024-01-01,South,VaxB,1200,400
+2024-01-01,East,VaxA,1000,300
+2024-01-01,West,VaxC,800,250
+2024-01-02,North,VaxA,1600,550
+2024-01-02,South,VaxB,1300,420
+2024-01-02,East,VaxC,1100,350
+2024-01-02,West,VaxA,900,280
+2024-01-03,North,VaxB,1700,600
+2024-01-03,South,VaxA,1400,450
+2024-01-03,East,VaxA,1200,400
+2024-01-03,West,VaxC,1000,320
+2024-01-04,North,VaxC,1800,650
+2024-01-04,South,VaxB,1500,500
+2024-01-04,East,VaxB,1300,450
+2024-01-04,West,VaxA,1100,360
+2024-01-05,North,VaxA,1900,700
+2024-01-05,South,VaxA,1600,550
+2024-01-05,East,VaxC,1400,500
+2024-01-05,West,VaxB,1200,400
+2024-01-06,North,VaxB,2000,750
+2024-01-06,South,VaxC,1700,600
+2024-01-06,East,VaxA,1500,550
+2024-01-06,West,VaxA,1300,440
+2024-01-07,North,VaxA,2100,800
+2024-01-07,South,VaxB,1800,650
+2024-01-07,East,VaxB,1600,600
+2024-01-07,West,VaxC,1400,480
+2024-01-08,North,VaxC,2200,850
+2024-01-08,South,VaxA,1900,700
+2024-01-08,East,VaxC,1700,650
+2024-0l-08,West,VaxB,1500,520
+2024-01-09,North,VaxA,2300,900
+2024-01-09,South,VaxB,2000,750
+2024-01-09,East,VaxA,1800,700
+2024-01-09,West,VaxA,1600,560
+2024-01-10,North,VaxB,2400,950
+2024-01-10,South,VaxC,2100,800
+2024-01-10,East,VaxB,1900,750
+2024-01-10,West,VaxC,1700,600
+`;
+
+        let fullData = []; // This will hold our parsed "DataFrame"
+
+        // --- DATA PROCESSING (JavaScript "Pandas") ---
+
+        /**
+         * Parses the mock CSV data into an array of objects.
+         * This simulates pd.read_csv()
+         */
+        function parseCSV(csvString) {
+            const lines = csvString.trim().split('\n');
+            const headers = lines[0].split(',');
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i]) continue; // Skip empty lines
+                const values = lines[i].split(',');
+                // Basic check for data integrity
+                if (values.length === headers.length) {
+                    const entry = {};
+                    headers.forEach((header, index) => {
+                        const value = values[index];
+                        // Convert numbers
+                        entry[header] = isNaN(value) || value.trim() === '' ? value : Number(value);
+                    });
+                    data.push(entry);
+                } else {
+                    console.warn(`Skipping malformed CSV line: ${lines[i]}`);
+                }
+            }
+            return data;
+        }
+
+        /**
+         * Filters the data based on current dropdown selections.
+         * This simulates pandas boolean indexing: df[(df['region'] == '...') & ...]
+         */
+        function filterData() {
+            const region = document.getElementById('region-filter').value;
+            const vaccine = document.getElementById('vaccine-filter').value;
+
+            return fullData.filter(row => {
+                const regionMatch = (region === 'All') || (row.region === region);
+                const vaccineMatch = (vaccine === 'All') || (row.vaccine_type === vaccine);
+                return regionMatch && vaccineMatch;
+            });
+        }
+
+        /**
+         * Aggregates data by date.
+         * This simulates pd.groupby('date').sum()
+         */
+        function aggregateDataByDate(data) {
+            const grouped = {}; // Use an object as a hash map
+
+            data.forEach(row => {
+                // Check if date is valid
+                if (row.date && typeof row.date === 'string' && row.date.includes('2024')) {
+                     if (!grouped[row.date]) {
+                        grouped[row.date] = {
+                            date: row.date,
+                            doses_administered: 0,
+                            fully_vaccinated: 0,
+                        };
+                    }
+                    grouped[row.date].doses_administered += Number(row.doses_administered) || 0;
+                    grouped[row.date].fully_vaccinated += Number(row.fully_vaccinated) || 0;
+                } else {
+                    console.warn(`Skipping row with invalid date:`, row);
+                }
+            });
+
+            // Convert map back to array and sort by date
+            return Object.values(grouped).sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+
+        /**
+         * Calculates total summary metrics.
+         */
+        function calculateMetrics(data) {
+            // Get the latest data for each region/vaccine combo
+            const latestEntries = {};
+            data.forEach(row => {
+                const key = `${row.region}-${row.vaccine_type}`;
+                if ((!latestEntries[key] || new Date(row.date) > new Date(latestEntries[key].date)) && row.date && typeof row.date === 'string') {
+                    latestEntries[key] = row;
+                }
+            });
+
+            const latestData = Object.values(latestEntries);
+
+            const totalDoses = data.reduce((sum, row) => sum + (Number(row.doses_administered) || 0), 0);
+            const totalFullyVaccinated = latestData.reduce((sum, row) => sum + (Number(row.fully_vaccinated) || 0), 0);
+
+            return { totalDoses, totalFullyVaccinated };
+        }
+
+        /**
+         * Simple "AI" insight based on trend.
+         */
+        function getAIInsight(aggregatedData) {
+            if (aggregatedData.length < 2) {
+                return '<span class="text-gray-500">Not enough data for trend.</span>';
+            }
+            
+            // Get last 7 days or all available if less than 7
+            const trendData = aggregatedData.slice(-7);
+            
+            if (trendData.length < 2) {
+                return '<span class="text-gray-500">Not enough data for trend.</span>';
+            }
+
+            const firstVal = trendData[0].doses_administered;
+            const lastVal = trendData[trendData.length - 1].doses_administered;
+            const change = lastVal - firstVal;
+            
+            if (firstVal === 0) {
+                 return '<span class="text-green-600">Rising (from 0)</span>';
+            }
+            
+            const percentChange = ((change / firstVal) * 100).toFixed(1);
+
+            if (change > 0) {
+                return `<span class="text-green-600">Rising ${percentChange}%</span>`;
+            } else if (change < 0) {
+                return `<span class="text-red-600">Falling ${Math.abs(percentChange)}%</span>`;
+            } else {
+                return '<span class="text-gray-600">Stable</span>';
+            }
+        }
+
+
+        // --- VISUALIZATION (Plotly.js) ---
+
+        /**
+         * Updates the Plotly chart with new data.
+         */
+        function updateChart(aggregatedData) {
+            const dates = aggregatedData.map(row => row.date);
+            const doses = aggregatedData.map(row => row.doses_administered);
+
+            const trace = {
+                x: dates,
+                y: doses,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Doses Administered',
+                line: {
+                    color: 'rgb(37, 99, 235)', // blue-700
+                    width: 3
+                },
+                marker: {
+                    color: 'rgb(37, 99, 235)',
+                    size: 6
+                }
+            };
+
+            const layout = {
+                title: 'Daily Doses Administered',
+                xaxis: {
+                    title: 'Date',
+                    gridcolor: '#e5e7eb', // gray-200
+                },
+                yaxis: {
+                    title: 'Number of Doses',
+                    gridcolor: '#e5e7eb', // gray-200
+                },
+                margin: { l: 60, r: 30, t: 40, b: 50 },
+                paper_bgcolor: 'rgb(255,255,255,1)', // Changed to solid white
+                plot_bgcolor: 'rgb(255,255,255,1)',  // Changed to solid white
+                font: {
+                    family: 'Inter, sans-serif',
+                    color: '#374151' // gray-700
+                },
+                hovermode: 'x unified'
+            };
+            
+            // Use responsive flag to make it resize
+            Plotly.newPlot('plotly-chart', [trace], layout, {responsive: true, displaylogo: false});
+        }
+
+        /**
+         * Main function to update the entire dashboard.
+         */
+        function updateDashboard() {
+            // 1. Filter data based on controls
+            const filtered = filterData();
+            
+            // 2. Aggregate data for the chart
+            const aggregated = aggregateDataByDate(filtered);
+            
+            // 3. Calculate summary metrics
+            const metrics = calculateMetrics(filtered);
+            
+            // 4. Get "AI" insight
+            const insight = getAIInsight(aggregated);
+
+            // 5. Update UI elements
+            document.getElementById('total-doses').textContent = metrics.totalDoses.toLocaleString();
+            document.getElementById('fully-vaccinated').textContent = metrics.totalFullyVaccinated.toLocaleString();
+            document.getElementById('ai-insight').innerHTML = insight;
+            
+            // 6. Update Plotly chart
+            updateChart(aggregated);
+        }
+
+        // --- INITIALIZATION ---
+
+        // Add event listeners to controls
+        document.getElementById('region-filter').addEventListener('change', updateDashboard);
+        document.getElementById('vaccine-filter').addEventListener('change', updateDashboard);
+        
+        // Initial setup on page load
+        window.onload = () => {
+            try {
+                fullData = parseCSV(mockCSVData);
+                if (fullData.length > 0) {
+                    updateDashboard();
+                } else {
+                    console.error("Failed to parse CSV data or data is empty.");
+                }
+            } catch (e) {
+                console.error("Error during initialization:", e);
+            }
+        };
+
+    </script>
+
+</body>
+</html>
